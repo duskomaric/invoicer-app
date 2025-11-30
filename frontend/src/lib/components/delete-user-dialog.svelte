@@ -1,15 +1,16 @@
 <script lang="ts">
+	import { API_BASE_URL } from "$lib/config";
 	import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import type { User } from "$lib/components/users-table.svelte";
 	import { toast } from "svelte-sonner";
 
-	let { 
-		users, 
+	let {
+		users,
 		onUsersDeleted,
-		variant = "single"
-	}: { 
-		users: User | User[]; 
+		variant = "single",
+	}: {
+		users: User | User[];
 		onUsersDeleted: () => void;
 		variant?: "single" | "bulk";
 	} = $props();
@@ -21,9 +22,9 @@
 	const userArray = $derived(Array.isArray(users) ? users : [users]);
 	const userCount = $derived(userArray.length);
 	const displayText = $derived(
-		userCount === 1 
-			? `user "${userArray[0].username}"` 
-			: `${userCount} users`
+		userCount === 1
+			? `user "${userArray[0].full_name}"`
+			: `${userCount} users`,
 	);
 
 	async function handleDelete() {
@@ -31,34 +32,37 @@
 		error = "";
 
 		try {
-			const token = localStorage.getItem('token');
+			const token = localStorage.getItem("token");
 			if (!token) {
-				throw new Error('Not authenticated');
+				throw new Error("Not authenticated");
 			}
 
 			// Delete all users
-			const deletePromises = userArray.map(user =>
-				fetch(`http://localhost:8000/api/v1/users/${user.id}`, {
-					method: 'DELETE',
+			const deletePromises = userArray.map((user) =>
+				fetch(`${API_BASE_URL}/api/v1/users/${user.id}`, {
+					method: "DELETE",
 					headers: {
-						'Authorization': `Bearer ${token}`,
-					}
-				})
+						Authorization: `Bearer ${token}`,
+					},
+				}),
 			);
 
 			const results = await Promise.all(deletePromises);
-			
+
 			// Check if any failed
-			const failedResults = results.filter(res => !res.ok);
+			const failedResults = results.filter((res) => !res.ok);
 			if (failedResults.length > 0) {
-				throw new Error(`Failed to delete ${failedResults.length} user(s)`);
+				throw new Error(
+					`Failed to delete ${failedResults.length} user(s)`,
+				);
 			}
 
 			open = false;
-			const message = userCount === 1 
-				? `User "${userArray[0].username}" deleted successfully!`
-				: `${userCount} users deleted successfully!`;
-			toast.success(message);
+			const message =
+				userCount === 1
+					? `User "${userArray[0].full_name}" deleted successfully!`
+					: `${userCount} users deleted successfully!`;
+			toast.warning(message);
 			onUsersDeleted();
 		} catch (err: any) {
 			error = err.message;
@@ -89,7 +93,7 @@
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 			<AlertDialog.Action onclick={handleDelete} disabled={loading}>
-				{loading ? 'Deleting...' : 'Delete'}
+				{loading ? "Deleting..." : "Delete"}
 			</AlertDialog.Action>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>

@@ -6,8 +6,17 @@ from app.core.database import get_session
 from app.services.user import verify_password, get_user_by_email
 from app.core.security import create_access_token
 from app.models.user import UserResponse
+from app.api.deps import get_current_user
+from app.models.user import User
 
 router = APIRouter()
+
+@router.get("/me", response_model=UserResponse)
+def get_me(
+    current_user: User = Depends(get_current_user)
+) -> UserResponse:
+    """Get current authenticated user"""
+    return current_user
 
 @router.post("/login")
 def login(

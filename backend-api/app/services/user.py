@@ -25,10 +25,6 @@ def get_user_by_email(db: Session, email: str) -> User:
     return db.exec(select(User).where(User.email == email)).first()
 
 
-def get_user_by_username(db: Session, username: str) -> User:
-    return db.exec(select(User).where(User.username == username)).first()
-
-
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.exec(select(User).offset(skip).limit(limit)).all()
 
@@ -37,7 +33,6 @@ def create_user(db: Session, user: UserCreate) -> User:
     hashed_password = get_password_hash(user.password)
     db_user = User(
         email=user.email,
-        username=user.username,
         full_name=user.full_name,
         hashed_password=hashed_password
     )

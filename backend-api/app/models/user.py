@@ -9,7 +9,6 @@ class User(SQLModel, table=True):
 
     id: int = Field(default=None, primary_key=True)
     email: str = Field(unique=True, index=True, max_length=255)
-    username: str = Field(unique=True, index=True, min_length=3, max_length=50)
     full_name: str = Field(min_length=1, max_length=100)
     hashed_password: str = Field(max_length=255)
     is_active: bool = Field(default=True)
@@ -19,7 +18,6 @@ class User(SQLModel, table=True):
 
 class UserCreate(SQLModel):
     email: str
-    username: str
     full_name: str
     password: str
 
@@ -27,7 +25,6 @@ class UserCreate(SQLModel):
         json_schema_extra={
             "example": {
                 "email": "user@example.com",
-                "username": "johndoe",
                 "full_name": "John Doe",
                 "password": "SecurePass123!"
             },
@@ -38,7 +35,6 @@ class UserCreate(SQLModel):
 
 class UserUpdate(SQLModel):
     email: Optional[str] = None
-    username: Optional[str] = None
     full_name: Optional[str] = None
     password: Optional[str] = None
 
@@ -57,7 +53,6 @@ class UserUpdate(SQLModel):
 class UserResponse(SQLModel):
     id: int
     email: str
-    username: str
     full_name: str
     is_active: bool
     created_at: datetime
@@ -68,7 +63,6 @@ class UserResponse(SQLModel):
             "example": {
                 "id": 1,
                 "email": "user@example.com",
-                "username": "johndoe",
                 "full_name": "John Doe",
                 "is_active": True,
                 "created_at": "2024-01-01T12:00:00",

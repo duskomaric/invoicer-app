@@ -3,13 +3,12 @@
 	import { renderComponent, renderSnippet } from "$lib/components/ui/data-table/index.js";
 	import DataTableCheckbox from "$lib/components/data-table-checkbox.svelte";
 	import { createRawSnippet } from "svelte";
-	import { Badge } from "$lib/components/ui/badge/index.js";
 	import EditUserDialog from "$lib/components/edit-user-dialog.svelte";
 	import DeleteUserDialog from "$lib/components/delete-user-dialog.svelte";
+	import ViewUserDialog from "$lib/components/view-user-dialog.svelte";
 
 	export type User = {
 		id: number;
-		username: string;
 		email: string;
 		full_name: string;
 		is_active: boolean;
@@ -38,10 +37,6 @@
 		{
 			accessorKey: "id",
 			header: "ID",
-		},
-		{
-			accessorKey: "username",
-			header: "Username",
 		},
 		{
 			accessorKey: "email",
@@ -255,6 +250,7 @@
 								<Table.Cell>
 									{#if cell.column.id === "actions"}
 										<div class="flex gap-2">
+											<ViewUserDialog user={row.original} />
 											<EditUserDialog user={row.original} onUserUpdated={onUserUpdated} />
 											<DeleteUserDialog users={row.original} onUsersDeleted={onUserDeleted} variant="single" />
 										</div>

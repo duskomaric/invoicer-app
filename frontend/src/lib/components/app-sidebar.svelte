@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+	import { API_BASE_URL } from "$lib/config";
 	import CameraIcon from "@tabler/icons-svelte/icons/camera";
 	import ChartBarIcon from "@tabler/icons-svelte/icons/chart-bar";
 	import DashboardIcon from "@tabler/icons-svelte/icons/dashboard";
@@ -21,12 +23,38 @@
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 	import type { ComponentProps } from "svelte";
 
-	const data = {
-		user: {
-			name: "shadcn",
-			email: "m@example.com",
-			avatar: "/avatars/shadcn.jpg",
-		},
+	let user = $state({
+		name: "Loading...",
+		email: "",
+		avatar: "/avatars/shadcn.jpg",
+	});
+
+	onMount(async () => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			try {
+				const res = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+
+				if (res.ok) {
+					const userData = await res.json();
+					user = {
+						name: userData.full_name,
+						email: userData.email,
+						avatar: "/avatars/shadcn.jpg",
+					};
+				}
+			} catch (error) {
+				console.error("Failed to fetch user data:", error);
+			}
+		}
+	});
+
+	const data = $derived({
+		user,
 		navMain: [
 			{
 				title: "Dashboard",
@@ -121,7 +149,7 @@
 				icon: FileWordIcon,
 			},
 		],
-	};
+	});
 
 	let { ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 </script>
@@ -130,11 +158,15 @@
 	<Sidebar.Header>
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
-				<Sidebar.MenuButton class="data-[slot=sidebar-menu-button]:!p-1.5">
+				<Sidebar.MenuButton
+					class="data-[slot=sidebar-menu-button]:!p-1.5"
+				>
 					{#snippet child({ props })}
 						<a href="##" {...props}>
 							<InnerShadowTopIcon class="!size-5" />
-							<span class="text-base font-semibold">Acme Inc.</span>
+							<span class="text-base font-semibold"
+								>Acme Inc.</span
+							>
 						</a>
 					{/snippet}
 				</Sidebar.MenuButton>

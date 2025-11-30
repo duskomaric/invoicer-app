@@ -19,8 +19,8 @@ class Settings:
     DEBUG: bool = os.getenv("DEBUG").lower() == "true"
 
     # CORS
-    ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "").split(",")
-#     ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://localhost:5174"]
+#     ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "").split(",")
+    ALLOWED_HOSTS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://localhost:5174"]
 
     # JWT
     ALGORITHM: str = "HS256"
