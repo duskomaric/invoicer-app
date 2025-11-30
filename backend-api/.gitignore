@@ -1,0 +1,24 @@
+# Docker
+.dockerignore
+docker-compose.override.yml # Local Docker overrides
+docker-compose.override.yml
+
+# Build artifacts
+Dockerfile.dev
+
+# Environment variables
+.env                        # Environment variables
+.env.local                  # Local environment overrides
+.env.production             # Production environment
+
+# Database (if using SQLite locally)
+*.db
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
