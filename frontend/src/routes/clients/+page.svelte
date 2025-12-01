@@ -1,19 +1,18 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { api } from "$lib/utils/api";
-    import type { User } from "$lib/utils/types";
-    import * as Sidebar from "$lib/components/ui/sidebar";
+    import { API_BASE_URL } from "$lib/config";
+    import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import AppSidebar from "$lib/components/app-sidebar.svelte";
     import SiteHeader from "$lib/components/site-header.svelte";
-    import UsersTable from "$lib/features/users/users-table.svelte";
-    import CreateUserDialog from "$lib/features/users/create-user-dialog.svelte";
+    import ClientsTable from "$lib/components/clients-table.svelte";
+    import CreateClientDialog from "$lib/components/create-client-dialog.svelte";
 
-    let users = $state<User[]>([]);
+    let clients = $state([]);
     let loading = $state(true);
     let error = $state("");
 
-    async function fetchUsers() {
+    async function fetchClients() {
         const token = localStorage.getItem("token");
         if (!token) {
             goto("/login");
@@ -23,13 +22,23 @@
         loading = true;
         error = "";
         try {
-            users = await api.get<User[]>("/api/v1/users/");
-        } catch (err: any) {
-            if (err.message.includes("401")) {
-                localStorage.removeItem("token");
-                goto("/login");
-                return;
+            const res = await fetch(`${API_BASE_URL}/api/v1/clients/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    localStorage.removeItem("token");
+                    goto("/login");
+                    return;
+                }
+                throw new Error("Failed to fetch clients");
             }
+
+            clients = await res.json();
+        } catch (err: any) {
             error = err.message;
         } finally {
             loading = false;
@@ -37,7 +46,7 @@
     }
 
     onMount(() => {
-        fetchUsers();
+        fetchClients();
     });
 </script>
 
@@ -52,15 +61,21 @@
                 <div class="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                     <div class="px-4 lg:px-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h1 class="text-2xl font-bold">Users</h1>
-                            <CreateUserDialog onUserCreated={fetchUsers} />
+                            <h1 class="text-2xl font-bold">Clients</h1>
+                            <CreateClientDialog
+                                onClientCreated={fetchClients}
+                            />
                         </div>
                         {#if loading}
                             <div>Loading...</div>
                         {:else if error}
                             <div class="text-red-500">{error}</div>
                         {:else}
-                            <UsersTable {users} onUpdate={fetchUsers} />
+                            <ClientsTable
+                                data={clients}
+                                onClientUpdated={fetchClients}
+                                onClientDeleted={fetchClients}
+                            />
                         {/if}
                     </div>
                 </div>

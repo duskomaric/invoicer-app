@@ -9,7 +9,7 @@ from sqlmodel import Session
 from app.core.database import engine
 from app.services.user import create_user as create_user_db, get_user_by_email, get_users
 from app.models.user import UserCreate
-from app.core.seeder import seed_users
+from app.core.seeder import seed_users, seed_clients
 
 
 # === USER COMMANDS ===
@@ -100,16 +100,13 @@ def make_migration(message):
 def seed():
     """Seed the database with test data"""
     with Session(engine) as session:
-        count = seed_users(session)
-        click.echo(f"✅ Seeding completed! Created {count} new users.")
-
-
-@cli.command()
-def seed():
-    """Seed the database with test data"""
-    with Session(engine) as session:
-        count = seed_users(session)
-        click.echo(f"✅ Seeding completed! Created {count} new users.")
+        user_count = seed_users(session)
+        click.echo(f"✅ Users seeded! Created {user_count} new users.")
+        
+        client_count = seed_clients(session)
+        click.echo(f"✅ Clients seeded! Created {client_count} new clients.")
+        
+        click.echo(f"✅ Seeding completed! Total: {user_count} users, {client_count} clients.")
 
 
 if __name__ == '__main__':

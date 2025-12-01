@@ -66,6 +66,11 @@
 				url: "/users",
 				icon: UsersIcon,
 			},
+			{
+				title: "Clients",
+				url: "/clients",
+				icon: UsersIcon,
+			},
 		],
 		navClouds: [
 			{
