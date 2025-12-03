@@ -1,7 +1,13 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
 from datetime import datetime
-from pydantic import ConfigDict, EmailStr
+from pydantic import ConfigDict, EmailStr, BaseModel
+
+
+class ClientFiltersMeta(BaseModel):
+    """Client-specific filter statistics"""
+    all_count: int
+
 
 class Client(SQLModel, table=True):
     __tablename__ = "clients"
@@ -13,6 +19,9 @@ class Client(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     user_id: int = Field(foreign_key="users.id")
+    
+    # Relationships
+    invoices: list["Invoice"] = Relationship(back_populates="client")
 
 class ClientCreate(SQLModel):
     name: str

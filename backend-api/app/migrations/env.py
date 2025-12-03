@@ -14,6 +14,9 @@ load_dotenv()
 from app.core.config import settings
 from app.core.database import SQLALCHEMY_DATABASE_URL
 from app.models.user import User  # noqa
+from app.models.client import Client  # noqa
+from app.models.product import Product  # noqa
+from app.models.invoice import Invoice  # noqa
 from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides

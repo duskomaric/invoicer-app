@@ -1,8 +1,15 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
-from pydantic import ConfigDict, field_validator, EmailStr
+from pydantic import ConfigDict, field_validator, EmailStr, BaseModel
 import re
+
+class UserFiltersMeta(BaseModel):
+    """User-specific filter statistics"""
+    all_count: int
+    active_count: int
+    inactive_count: int
+
 
 class User(SQLModel, table=True):
     __tablename__ = "users"

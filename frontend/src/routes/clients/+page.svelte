@@ -1,53 +1,77 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { API_BASE_URL } from "$lib/config";
+    import { api } from "$lib/utils/api";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import AppSidebar from "$lib/components/app-sidebar.svelte";
     import SiteHeader from "$lib/components/site-header.svelte";
-    import ClientsTable from "$lib/components/clients-table.svelte";
-    import CreateClientDialog from "$lib/components/create-client-dialog.svelte";
+    import ClientsTable from "$lib/features/clients/clients-table.svelte";
+    import CreateClientDialog from "$lib/features/clients/create-client-dialog.svelte";
+    import type { Client } from "$lib/utils/types";
 
-    let clients = $state([]);
+    let clients = $state<Client[]>([]);
     let loading = $state(true);
     let error = $state("");
 
-    async function fetchClients() {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            goto("/login");
-            return;
-        }
+    // Pagination and Search state
+    let totalCount = $state(0);
+    let allCount = $state(0);
+    let currentPage = $state(0);
+    let pageSize = $state(10);
+    let searchQuery = $state("");
 
+    async function fetchClients() {
         loading = true;
         error = "";
         try {
-            const res = await fetch(`${API_BASE_URL}/api/v1/clients/`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+            const queryParams = new URLSearchParams({
+                skip: (currentPage * pageSize).toString(),
+                limit: pageSize.toString(),
             });
 
-            if (!res.ok) {
-                if (res.status === 401) {
-                    localStorage.removeItem("token");
-                    goto("/login");
-                    return;
-                }
-                throw new Error("Failed to fetch clients");
+            if (searchQuery) {
+                queryParams.append("search", searchQuery);
             }
 
-            clients = await res.json();
+            const response = await api.get<{
+                data: Client[];
+                meta: {
+                    total: number;
+                    page: number;
+                    limit: number;
+                    filters: {
+                        all_count: number;
+                    };
+                };
+            }>(`/api/v1/clients/?${queryParams.toString()}`);
+
+            clients = response.data;
+            totalCount = response.meta.total;
+            allCount = response.meta.filters.all_count;
         } catch (err: any) {
             error = err.message;
+            if (err.message === "Unauthorized") {
+                goto("/login");
+            }
         } finally {
             loading = false;
         }
     }
 
-    onMount(() => {
+    // Reactivity for fetching data
+    $effect(() => {
+        // Track dependencies
+        const _page = currentPage;
+        const _size = pageSize;
+        const _search = searchQuery;
+
+        // Fetch data
         fetchClients();
     });
+
+    function onClientCreated() {
+        fetchClients();
+    }
 </script>
 
 <Sidebar.Provider
@@ -62,17 +86,20 @@
                     <div class="px-4 lg:px-6">
                         <div class="flex justify-between items-center mb-4">
                             <h1 class="text-2xl font-bold">Clients</h1>
-                            <CreateClientDialog
-                                onClientCreated={fetchClients}
-                            />
+                            <CreateClientDialog {onClientCreated} />
                         </div>
-                        {#if loading}
+                        {#if loading && clients.length === 0}
                             <div>Loading...</div>
                         {:else if error}
                             <div class="text-red-500">{error}</div>
                         {:else}
                             <ClientsTable
                                 data={clients}
+                                {totalCount}
+                                {allCount}
+                                bind:currentPage
+                                bind:pageSize
+                                bind:searchQuery
                                 onClientUpdated={fetchClients}
                                 onClientDeleted={fetchClients}
                             />

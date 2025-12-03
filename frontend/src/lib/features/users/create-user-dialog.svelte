@@ -21,6 +21,7 @@
 	import UserIcon from "@tabler/icons-svelte/icons/user";
 	import LockIcon from "@tabler/icons-svelte/icons/lock";
 	import Loader2Icon from "@tabler/icons-svelte/icons/loader-2";
+    import PlusIcon from "@tabler/icons-svelte/icons/plus";
 
 	// Props
 	let { onUserCreated }: { onUserCreated: () => void } = $props();
@@ -74,7 +75,7 @@
 <Dialog.Root bind:open>
 	<Dialog.Trigger>
 		<Button>
-			<UserPlusIcon class="mr-2 h-4 w-4" />
+            <PlusIcon class="mr-2 h-4 w-4" />
 			Create User
 		</Button>
 	</Dialog.Trigger>

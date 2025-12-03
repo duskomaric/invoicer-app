@@ -14,32 +14,53 @@
     import { Badge } from "$lib/components/ui/badge";
     import { Checkbox } from "$lib/components/ui/checkbox";
     import { Button } from "$lib/components/ui/button";
+    import { Input } from "$lib/components/ui/input";
 
     // Icons
     import ChevronLeftIcon from "@tabler/icons-svelte/icons/chevron-left";
     import ChevronRightIcon from "@tabler/icons-svelte/icons/chevron-right";
-    import UserIcon from "@tabler/icons-svelte/icons/user";
     import LayoutColumnsIcon from "@tabler/icons-svelte/icons/layout-columns";
     import ChevronDownIcon from "@tabler/icons-svelte/icons/chevron-down";
+    import SearchIcon from "@tabler/icons-svelte/icons/search";
 
     // Feature Components
     import EditUserDialog from "./edit-user-dialog.svelte";
     import DeleteUserDialog from "./delete-user-dialog.svelte";
     import ViewUserDialog from "./view-user-dialog.svelte";
+    import UsersIcon from "@tabler/icons-svelte/icons/users";
+    import ChevronsRightIcon from "@tabler/icons-svelte/icons/chevrons-right";
+    import ChevronsLeftIcon from "@tabler/icons-svelte/icons/chevrons-left";
 
     // Props interface
     let {
         users,
         onUpdate,
+        searchQuery = $bindable(""),
+        statusFilter = $bindable<"all" | "active" | "inactive">("all"),
+        currentPage = $bindable(0),
+        pageSize = $bindable(10),
+        totalCount = 0,
+        activeCount = 0,
+        inactiveCount = 0,
     }: {
         users: User[];
         onUpdate: () => void;
+        searchQuery?: string;
+        statusFilter?: "all" | "active" | "inactive";
+        currentPage?: number;
+        pageSize?: number;
+        totalCount?: number;
+        activeCount?: number;
+        inactiveCount?: number;
     } = $props();
 
     // State
     let selectedIds = $state<number[]>([]);
-    let currentPage = $state(0);
-    const pageSize = 10;
+    let localPageSize = $state(String(pageSize));
+
+    // Local search input state (debounced)
+    let searchInput = $state(searchQuery);
+    let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Column Visibility State
     type ColumnKey = "id" | "email" | "full_name" | "is_active";
@@ -50,11 +71,22 @@
         is_active: true,
     });
 
-    // Derived state
-    const totalPages = $derived(Math.ceil(users.length / pageSize));
-    const paginatedUsers = $derived(
-        users.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
-    );
+    // Debounced search: update searchQuery after user stops typing
+    $effect(() => {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        searchTimeout = setTimeout(() => {
+            // If search actually changed, reset to page 0
+            if (searchQuery !== searchInput) {
+                currentPage = 0;
+            }
+            searchQuery = searchInput;
+        }, 300);
+    });
+
+    // Derived state - users are already filtered by backend
     const selectedUsers = $derived(
         users.filter((u) => selectedIds.includes(u.id)),
     );
@@ -63,13 +95,13 @@
     const isAllSelected = $derived(
         users.length > 0 && selectedIds.length === users.length,
     );
+
     const isIndeterminate = $derived(
         selectedIds.length > 0 && selectedIds.length < users.length,
     );
 
     /**
      * Toggles selection of a single user.
-     * Uses array spread to ensure Svelte 5 reactivity triggers.
      */
     function toggleSelection(id: number) {
         if (selectedIds.includes(id)) {
@@ -92,11 +124,16 @@
 
     // Pagination handlers
     function nextPage() {
-        if (currentPage < totalPages - 1) currentPage++;
+        currentPage++;
     }
 
     function prevPage() {
         if (currentPage > 0) currentPage--;
+    }
+
+    function changePageSize(size: number) {
+        pageSize = size;
+        currentPage = 0;
     }
 </script>
 
@@ -105,7 +142,7 @@
     <Card.Root>
         <Card.Header class="border-b bg-muted/50 transition-colors">
             <div class="flex items-center gap-2">
-                <UserIcon class="h-5 w-5 text-muted-foreground" />
+                <UsersIcon class="h-5 w-5 text-muted-foreground" />
                 <Card.Title class="text-lg">Users Management</Card.Title>
             </div>
             <Card.Description>
@@ -114,6 +151,75 @@
         </Card.Header>
 
         <Card.Content class="p-0">
+            <!-- Search and Filter Section -->
+            <div class="p-4 border-b space-y-4">
+                <!-- Search Input -->
+                <div class="relative max-w-sm">
+                    <SearchIcon
+                        class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                    />
+                    <Input
+                        type="text"
+                        placeholder="Search by name or email..."
+                        bind:value={searchInput}
+                        class="pl-9"
+                    />
+                </div>
+
+                <!-- Status Filter Buttons -->
+                <div class="flex gap-2">
+                    <Button
+                        variant={statusFilter === "all" ? "default" : "outline"}
+                        size="sm"
+                        onclick={() => {
+                            if (statusFilter !== "all") {
+                                currentPage = 0;
+                            }
+                            statusFilter = "all";
+                        }}
+                    >
+                        All
+                        <Badge variant="secondary" class="ml-2">
+                            {totalCount}
+                        </Badge>
+                    </Button>
+                    <Button
+                        variant={statusFilter === "active"
+                            ? "default"
+                            : "outline"}
+                        size="sm"
+                        onclick={() => {
+                            if (statusFilter !== "active") {
+                                currentPage = 0;
+                            }
+                            statusFilter = "active";
+                        }}
+                    >
+                        Active
+                        <Badge variant="secondary" class="ml-2">
+                            {activeCount}
+                        </Badge>
+                    </Button>
+                    <Button
+                        variant={statusFilter === "inactive"
+                            ? "default"
+                            : "outline"}
+                        size="sm"
+                        onclick={() => {
+                            if (statusFilter !== "inactive") {
+                                currentPage = 0;
+                            }
+                            statusFilter = "inactive";
+                        }}
+                    >
+                        Inactive
+                        <Badge variant="secondary" class="ml-2">
+                            {inactiveCount}
+                        </Badge>
+                    </Button>
+                </div>
+            </div>
+
             <!-- Toolbar -->
             <div class="flex items-center justify-between p-4 border-b">
                 <div class="flex items-center gap-2">
@@ -199,7 +305,7 @@
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        {#each paginatedUsers as user (user.id)}
+                        {#each users as user (user.id)}
                             <Table.Row
                                 data-state={selectedIds.includes(user.id)
                                     ? "selected"
@@ -249,7 +355,7 @@
                                             onUserUpdated={onUpdate}
                                         />
                                         <DeleteUserDialog
-                                            users={user}
+                                            users={[user]}
                                             onUsersDeleted={onUpdate}
                                             variant="single"
                                         />
@@ -280,22 +386,43 @@
             </div>
         </Card.Content>
 
-        <!-- Pagination Footer -->
-        {#if totalPages > 1}
+        <!-- Pagination Footer - Always show if there are users -->
+        {#if users.length > 0}
             <Card.Footer class="flex items-center justify-between border-t p-4">
-                <div class="text-sm text-muted-foreground">
-                    Showing <span class="font-medium"
-                        >{currentPage * pageSize + 1}</span
-                    >
-                    to
-                    <span class="font-medium"
-                        >{Math.min(
-                            (currentPage + 1) * pageSize,
-                            users.length,
-                        )}</span
-                    >
-                    of <span class="font-medium">{users.length}</span> users
+                <!-- Left side: perPage + info -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-muted-foreground"
+                            >Per page:</span
+                        >
+                        <select
+                            class="border rounded p-1 text-sm"
+                            bind:value={localPageSize}
+                            onchange={() =>
+                                changePageSize(Number(localPageSize))}
+                        >
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+
+                    <div class="text-sm text-muted-foreground">
+                        Showing
+                        <span class="font-medium"
+                            >{currentPage * pageSize + 1}</span
+                        >
+                        to
+                        <span class="font-medium">
+                            {Math.min((currentPage + 1) * pageSize, totalCount)}
+                        </span>
+                        of <span class="font-medium">{totalCount}</span> users
+                    </div>
                 </div>
+
+                <!-- Right side: pagination buttons -->
                 <div class="flex gap-2">
                     <Button
                         variant="outline"
@@ -306,11 +433,18 @@
                         <ChevronLeftIcon class="h-4 w-4 mr-1" />
                         Previous
                     </Button>
+
+                    <span
+                        class="flex items-center text-sm text-muted-foreground px-3"
+                    >
+                        Page {currentPage + 1}
+                    </span>
+
                     <Button
                         variant="outline"
                         size="sm"
                         onclick={nextPage}
-                        disabled={currentPage >= totalPages - 1}
+                        disabled={users.length < pageSize}
                     >
                         Next
                         <ChevronRightIcon class="h-4 w-4 ml-1" />

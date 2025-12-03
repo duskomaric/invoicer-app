@@ -16,6 +16,9 @@
 	import SearchIcon from "@tabler/icons-svelte/icons/search";
 	import SettingsIcon from "@tabler/icons-svelte/icons/settings";
 	import UsersIcon from "@tabler/icons-svelte/icons/users";
+	import BuildingsIcon from "@tabler/icons-svelte/icons/buildings";
+	import PackageIcon from "@tabler/icons-svelte/icons/package";
+	import FileInvoiceIcon from "@tabler/icons-svelte/icons/file-invoice";
 	import NavDocuments from "./nav-documents.svelte";
 	import NavMain from "./nav-main.svelte";
 	import NavSecondary from "./nav-secondary.svelte";
@@ -58,7 +61,7 @@
 		navMain: [
 			{
 				title: "Dashboard",
-				url: "/dashboard-01",
+				url: "/dashboard",
 				icon: DashboardIcon,
 			},
 			{
@@ -69,7 +72,17 @@
 			{
 				title: "Clients",
 				url: "/clients",
-				icon: UsersIcon,
+				icon: BuildingsIcon,
+			},
+			{
+				title: "Products",
+				url: "/products",
+				icon: PackageIcon,
+			},
+			{
+				title: "Invoices",
+				url: "/invoices",
+				icon: FileInvoiceIcon,
 			},
 		],
 		navClouds: [
@@ -127,11 +140,6 @@
 				icon: SettingsIcon,
 			},
 			{
-				title: "Get Help",
-				url: "#",
-				icon: HelpIcon,
-			},
-			{
 				title: "Search",
 				url: "#",
 				icon: SearchIcon,
@@ -139,19 +147,9 @@
 		],
 		documents: [
 			{
-				name: "Data Library",
-				url: "#",
-				icon: DatabaseIcon,
-			},
-			{
 				name: "Reports",
 				url: "#",
 				icon: ReportIcon,
-			},
-			{
-				name: "Word Assistant",
-				url: "#",
-				icon: FileWordIcon,
 			},
 		],
 	});
@@ -167,10 +165,9 @@
 					class="data-[slot=sidebar-menu-button]:!p-1.5"
 				>
 					{#snippet child({ props })}
-						<a href="##" {...props}>
+						<a href="/" {...props}>
 							<InnerShadowTopIcon class="!size-5" />
-							<span class="text-base font-semibold"
-								>Acme Inc.</span
+							<h1 class="text-base font-semibold">Invoicer</h1
 							>
 						</a>
 					{/snippet}

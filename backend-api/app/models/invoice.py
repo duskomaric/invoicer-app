@@ -1,7 +1,17 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
-from pydantic import ConfigDict
+from pydantic import ConfigDict, BaseModel
+
+
+class InvoiceFiltersMeta(BaseModel):
+    """Invoice-specific filter statistics"""
+    all_count: int
+    draft_count: int
+    sent_count: int
+    paid_count: int
+    cancelled_count: int
+
 
 class InvoiceItem(SQLModel, table=True):
     __tablename__ = "invoice_items"
@@ -35,6 +45,7 @@ class Invoice(SQLModel, table=True):
 
     # Relationships
     items: List[InvoiceItem] = Relationship(back_populates="invoice")
+    client: Optional["Client"] = Relationship(back_populates="invoices")
 
 class InvoiceItemCreate(SQLModel):
     product_id: int
@@ -67,10 +78,14 @@ class InvoiceCreate(SQLModel):
     )
 
 class InvoiceUpdate(SQLModel):
+    client_id: Optional[int] = None
     status: Optional[str] = None
     due_date: Optional[datetime] = None
     is_recurring: Optional[bool] = None
     recurring_interval: Optional[str] = None
+    items: Optional[List[InvoiceItemCreate]] = None
+
+from app.models.client import ClientResponse
 
 class InvoiceResponse(SQLModel):
     id: int
@@ -85,3 +100,4 @@ class InvoiceResponse(SQLModel):
     created_at: datetime
     updated_at: datetime
     items: List[InvoiceItem]
+    client: Optional[ClientResponse] = None

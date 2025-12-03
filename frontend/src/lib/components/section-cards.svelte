@@ -1,8 +1,28 @@
 <script lang="ts">
 	import TrendingDownIcon from "@tabler/icons-svelte/icons/trending-down";
 	import TrendingUpIcon from "@tabler/icons-svelte/icons/trending-up";
+	import UsersIcon from "@tabler/icons-svelte/icons/users";
+	import BuildingIcon from "@tabler/icons-svelte/icons/building";
+	import PackageIcon from "@tabler/icons-svelte/icons/package";
+	import FileInvoiceIcon from "@tabler/icons-svelte/icons/file-invoice";
 	import { Badge } from "$lib/components/ui/badge/index.js";
 	import * as Card from "$lib/components/ui/card/index.js";
+
+	let {
+		stats = {
+			usersCount: 0,
+			clientsCount: 0,
+			productsCount: 0,
+			invoicesCount: 0,
+		},
+	}: {
+		stats?: {
+			usersCount: number;
+			clientsCount: number;
+			productsCount: number;
+			invoicesCount: number;
+		};
+	} = $props();
 </script>
 
 <div
@@ -10,82 +30,86 @@
 >
 	<Card.Root class="@container/card">
 		<Card.Header>
-			<Card.Description>Total Revenue</Card.Description>
-			<Card.Title class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-				$1,250.00
+			<Card.Description>Total Users</Card.Description>
+			<Card.Title
+				class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums"
+			>
+				{stats.usersCount}
 			</Card.Title>
 			<Card.Action>
 				<Badge variant="outline">
-					<TrendingUpIcon />
-					+12.5%
+					<UsersIcon class="mr-1 size-3" />
+					Users
 				</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Footer class="flex-col items-start gap-1.5 text-sm">
 			<div class="line-clamp-1 flex gap-2 font-medium">
-				Trending up this month <TrendingUpIcon class="size-4" />
+				Active system users
 			</div>
-			<div class="text-muted-foreground">Visitors for the last 6 months</div>
 		</Card.Footer>
 	</Card.Root>
 	<Card.Root class="@container/card">
 		<Card.Header>
-			<Card.Description>New Customers</Card.Description>
-			<Card.Title class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-				1,234
+			<Card.Description>Total Clients</Card.Description>
+			<Card.Title
+				class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums"
+			>
+				{stats.clientsCount}
 			</Card.Title>
 			<Card.Action>
 				<Badge variant="outline">
-					<TrendingDownIcon />
-					-20%
+					<BuildingIcon class="mr-1 size-3" />
+					Clients
 				</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Footer class="flex-col items-start gap-1.5 text-sm">
 			<div class="line-clamp-1 flex gap-2 font-medium">
-				Down 20% this period <TrendingDownIcon class="size-4" />
+				Registered clients
 			</div>
-			<div class="text-muted-foreground">Acquisition needs attention</div>
 		</Card.Footer>
 	</Card.Root>
 	<Card.Root class="@container/card">
 		<Card.Header>
-			<Card.Description>Active Accounts</Card.Description>
-			<Card.Title class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-				45,678
+			<Card.Description>Total Products</Card.Description>
+			<Card.Title
+				class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums"
+			>
+				{stats.productsCount}
 			</Card.Title>
 			<Card.Action>
 				<Badge variant="outline">
-					<TrendingUpIcon />
-					+12.5%
+					<PackageIcon class="mr-1 size-3" />
+					Products
 				</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Footer class="flex-col items-start gap-1.5 text-sm">
 			<div class="line-clamp-1 flex gap-2 font-medium">
-				Strong user retention <TrendingUpIcon class="size-4" />
+				Available products/services
 			</div>
-			<div class="text-muted-foreground">Engagement exceed targets</div>
 		</Card.Footer>
 	</Card.Root>
 	<Card.Root class="@container/card">
 		<Card.Header>
-			<Card.Description>Growth Rate</Card.Description>
-			<Card.Title class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-				4.5%
+			<Card.Description>Total Invoices</Card.Description>
+			<Card.Title
+				class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums"
+			>
+				{stats.invoicesCount}
 			</Card.Title>
 			<Card.Action>
 				<Badge variant="outline">
-					<TrendingUpIcon />
-					+4.5%
+					<FileInvoiceIcon class="mr-1 size-3" />
+					Invoices
 				</Badge>
 			</Card.Action>
 		</Card.Header>
 		<Card.Footer class="flex-col items-start gap-1.5 text-sm">
 			<div class="line-clamp-1 flex gap-2 font-medium">
-				Steady performance increase <TrendingUpIcon class="size-4" />
+				Generated invoices
 			</div>
-			<div class="text-muted-foreground">Meets growth projections</div>
 		</Card.Footer>
 	</Card.Root>
 </div>

@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
+from typing import Optional
 from app.core.database import get_session
-from app.models.invoice import InvoiceCreate, InvoiceUpdate, InvoiceResponse
+from app.models.invoice import Invoice, InvoiceCreate, InvoiceUpdate, InvoiceResponse, InvoiceFiltersMeta
 from app.models.user import User
+from app.models.response_models import PaginatedResponse, Meta
 from app.api.deps import get_current_user
 from app.services.invoice import (
     get_invoice, get_invoices, create_invoice, update_invoice, delete_invoice
@@ -18,14 +20,48 @@ def create_new_invoice(
 ) -> InvoiceResponse:
     return create_invoice(db=db, invoice=invoice, user_id=current_user.id)
 
-@router.get("/", response_model=list[InvoiceResponse])
-def read_invoices(
+@router.get("/", response_model=PaginatedResponse[InvoiceResponse])
+def list_invoices(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 10,
+    status: Optional[str] = None,
+    search: Optional[str] = None,
     db: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
-) -> list[InvoiceResponse]:
-    return get_invoices(db, user_id=current_user.id, skip=skip, limit=limit)
+) -> PaginatedResponse[InvoiceResponse]:
+    """
+    Get all invoices for the current user with pagination.
+    """
+    invoices, total_count, all_count, draft_count, sent_count, paid_count, cancelled_count = get_invoices(
+        db,
+        user_id=current_user.id,
+        skip=skip,
+        limit=limit,
+        status=status,
+        search=search
+    )
+
+    # Calculate page number (1-indexed)
+    page = (skip // limit) + 1 if limit > 0 else 1
+
+    # Create invoice-specific filters
+    invoice_filters = InvoiceFiltersMeta(
+        all_count=all_count,
+        draft_count=draft_count,
+        sent_count=sent_count,
+        paid_count=paid_count,
+        cancelled_count=cancelled_count
+    )
+    
+    return PaginatedResponse(
+        data=invoices,
+        meta=Meta(
+            total=total_count,
+            page=page,
+            limit=limit,
+            filters=invoice_filters.model_dump()
+        )
+    )
 
 @router.get("/{invoice_id}", response_model=InvoiceResponse)
 def read_invoice(

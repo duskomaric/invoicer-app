@@ -1,7 +1,13 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
-from pydantic import ConfigDict
+from pydantic import ConfigDict, BaseModel
+
+
+class ProductFiltersMeta(BaseModel):
+    """Product-specific filter statistics"""
+    all_count: int
+
 
 class Product(SQLModel, table=True):
     __tablename__ = "products"

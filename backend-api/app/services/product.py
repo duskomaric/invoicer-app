@@ -1,12 +1,34 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from app.models.product import Product, ProductCreate, ProductUpdate
 from datetime import datetime
 
 def get_product(db: Session, product_id: int, user_id: int) -> Product:
     return db.exec(select(Product).where(Product.id == product_id, Product.user_id == user_id)).first()
 
-def get_products(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return db.exec(select(Product).where(Product.user_id == user_id).offset(skip).limit(limit)).all()
+def get_products(db: Session, user_id: int, skip: int = 0, limit: int = 100, search: str = None):
+    """
+    Get products for a user with pagination.
+    Returns tuple of (products, total_count, all_count)
+    """
+    query = select(Product).where(Product.user_id == user_id)
+    
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.where(
+            (Product.name.ilike(search_pattern)) | 
+            (Product.description.ilike(search_pattern))
+        )
+    
+    # Get total count with filters
+    total_count = db.exec(select(func.count()).select_from(query.subquery())).one()
+    
+    # Get all count (unfiltered)
+    all_count = db.exec(select(func.count()).where(Product.user_id == user_id)).one()
+    
+    # Get paginated products
+    products = db.exec(query.offset(skip).limit(limit)).all()
+    
+    return products, total_count, all_count
 
 def create_product(db: Session, product: ProductCreate, user_id: int) -> Product:
     db_product = Product(

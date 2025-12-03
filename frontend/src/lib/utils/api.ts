@@ -4,7 +4,10 @@ export async function apiRequest<T = any>(
     endpoint: string,
     options: RequestInit = {}
 ): Promise<T> {
-    const token = localStorage.getItem('token');
+    let token = null;
+    if (typeof window !== 'undefined') {
+        token = localStorage.getItem('token');
+    }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
